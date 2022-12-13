@@ -475,18 +475,20 @@ q = """[[9,2],[],[10,[6,1],5,4]]
 [[3],[0,7,[[6,0,0,10],9,[],9,2]],[[10,3,7,[6]]]]
 
 """
+debug = 0
 def printc(c,s):
-    pass
-    print("   "*c,s)
+	if debug:
+		print("   "*c,s)
+    
 def cmp(a,b,c):
     printc(c,f"comp {a} <-> {b}") 
     for i in zip(a,b):
         j=i[0]
         k=i[1]
-        printc(c,f"{j} <-> {k}") 
+        printc(c,f"iter {j} <-> {k}") 
         if type(j)==int and type(k)==int:
             if j==k:
-                return None
+                continue
             elif j<k:
                 printc(c,"int True")
                 return True
@@ -509,6 +511,8 @@ def cmp(a,b,c):
             s =  cmp(j,[k],c+1)
             if type(s) == bool:
                 return s
+    if len(a)==len(b):
+    	return None
     return len(a) < len(b)
 step = 0
 idx = 0
@@ -525,8 +529,8 @@ for i in q.splitlines():
         idx+=1
         step = 0
         #print("\nCompare: ",idx)
-        #if cmp(a,b,0):
-        #    tot+=idx
+        if cmp(a,b,0):
+            tot+=idx
 print("total: ",tot)
 
 #*******part 2**********
@@ -534,17 +538,14 @@ def swapPositions(list, pos1, pos2):
     list[pos1], list[pos2] = list[pos2], list[pos1]
     return list
 
-print(cmp([1, [2, [3, [4, [5, 6, 7]]]], 8, 9],[1, 1, 5, 1, 1],0))
-print(cmp([1, 1, 5, 1, 1],[1, [2, [3, [4, [5, 6, 7]]]], 8, 9],0))
-quit()
+
 listing = []
 listing.append([[2]])
 listing.append([[6]])
 
-for i in t.splitlines():
+for i in q.splitlines():
     if i!="":
-        pass
-        #listing.append(eval(i))
+        listing.append(eval(i))
 #print(listing)
 change = True
 while change:
@@ -554,8 +555,10 @@ while change:
             swapPositions(listing,i,i+1)
             change=True
     
-#listing.reverse()
-print(listing.index([[2]]))
-print(listing.index([[6]]))
-for i in listing:
-    print(i)
+listing.reverse()
+a = listing.index([[2]])+1
+b = listing.index([[6]])+1
+print("Part 2:",a*b)
+
+#for i in listing:
+#    print(i)
