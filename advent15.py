@@ -46,60 +46,37 @@ class sens():
 		self.bx = q[2]
 		self.by = q[3]		
 		self.manh = abs(self.x-self.bx)+abs(self.y-self.by)
-		print(f"dist = {self.manh}")
+		#print(f"dist = {self.manh}")
 	def decode(self,s):
 		p = s.split(",")
 		numbers = [ int(x) for x in p ]
 		return numbers
 
-	def inCone(self,x,y):
-		if (abs(self.y-y)+abs(self.x-x))>self.manh:
-			return self.manh-abs(self.y-y)+1
-				
-	def getimp(self,row):
+
+	def getimp(self,row):	#impossible locations
 		if abs(self.y-row)>self.manh:
 			return None
 		else:
 			l = []
 			for i in range(self.manh-abs(self.y-row)+1):
-				if self.x-i>=0:
-					l.append(self.x-i)
-				if self.x+i<=4000000:
-					l.append(self.x+i)
+				l.append(self.x-i)
+				l.append(self.x+i)
 
 		return l
 l=[]
-for i in ex.splitlines():
+for i in q.splitlines():
 	l.append(sens(i))
 
-"""
-for search in range(4000000):
-	pos = []
-	for i in l:
-		q=i.getimp(search)
-		if q is not None:
-			pos.extend(q)		
+search = 2000000
+pos=[]
+for i in l:
+	q=i.getimp(search)
+	if q is not None:
+		pos.extend(q)		
 	g = set(pos)	
-	for i in l:
-		if i.by==search:
-			if i.bx in g:
-				pass
-				#print(f"remove {i.bx},{i.by}")
-				#g.remove(i.bx)
-	print(search,len(g))
-"""
-
-for y in range(20):
-	x=0
-	found = True
-	while x<20 and found:
-		found = True
-		for sens in l:
-			h=sens.inCone(x,y)
-			if h and h>0:
-				found = False
-				x=h
-	if not found:
-		break
-print ("done",x,y)
+	
+for i in l:
+	if i.by==search and i.bx in g:
+		g.remove(i.bx)
+print ("Part 1:",len(g))
 
