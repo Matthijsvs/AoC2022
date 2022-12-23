@@ -1,3 +1,5 @@
+from PIL import Image, ImageDraw
+
 m="""        ...#
         .#..
         #...
@@ -255,79 +257,110 @@ def next(sx,sy,dx,dy):
 	else:
 		return x%w,y%h
 		
-def nextCube(sx,sy,direction):
+def nextCube(img,direction):
 	dx,dy=dirs[direction]
-	lx=x+sx	#local x = steps_x + actual x
-	ly=y+sy
+	lx=x	#local x =  actual x
+	ly=y
+	olddir=direction
 	pos = lx//50+(ly//50)*10
-	newpos = (lx+dx)//50+((ly+dy)//50)*10
+	lx+=dx
+	ly+=dy
+	newpos = lx//50+(ly//50)*10
 	if newpos!=pos:
-		if newpos==-9: #->6
-			ly = x%50+150
+		if newpos==-9: #->6             #z
+			ly = (x%50)+150
 			lx = 0
 			direction=0
 		elif newpos==29:#-->1
 			lx = y%50+50
 			ly = 0
 			direction =1
-		elif newpos==-8: #->6
+			
+		elif newpos==-8: #->6           #x
 			lx = x%50
 			ly = 199
 			direction=3
-		elif newpos == 12 and pos == 2:
-			lx = 100
-			ly = x % 50 + 50
-			direction = 2
-		elif newpos == 12 and pos == 11:
-			lx = ly % 50 + 100
-			ly = 50
-			direction = 3
-		elif newpos == 3:
-			lx = 100
-			ly = y + 100
-			direction = 2
-		elif newpos == 22:
-			lx = 150
-			ly = y - 150
-			direction = 2
-		elif newpos == 0:
-			lx = 0
-			ly = y + 100
-			direction = 0
 		elif newpos == 40:
 			lx = x+100
 			ly = 0
 			direction = 1
-		elif newpos == 31 and pos == 21:
-			lx = 50
+
+		elif newpos == 3: #y
+			lx = 99
+			ly = 49-y + 100
+			direction = 2
+		elif newpos == 22:
+			lx = 149
+			ly = 49-(y%50)
+			direction = 2
+			
+		elif newpos == 12 and pos == 2:#gamma
+			lx = 99
+			ly = (x % 50) + 50
+			direction = 2
+		elif newpos == 12 and pos == 11:
+			lx = ly % 50 + 100
+			ly = 49
+			direction = 3
+			
+
+
+
+		elif newpos == 31 and pos == 21:        #delta
+			lx = 49
 			ly = x % 50 +150
 			direction = 2
 		elif newpos == 31 and pos == 30:
 			lx = y % 50 + 50
-			ly = 150
+			ly = 149
 			direction = 3
+			
+		elif newpos == 19:              #beta
+			ly = 49-(y%50)
+			lx = 50
+			direction = 0
+			
+		elif newpos == 0:
+			lx = 0
+			ly = 49-y + 100
+			direction = 0
+			
+		elif newpos == 10 and pos == 11: #alpha
+			lx = y % 50 
+			ly = 100
+			direction = 1
+		elif newpos == 10 and pos == 20:
+			lx = 50 
+			ly = 50+x
+			direction = 0
 		else:
-			print(f"edge! {pos}({lx},{ly})->{newpos} ({lx+dx},{ly+dy})")			
-	s=mm[(ly+dy)%(h)][(lx+dx)%(w)]
-	if s=="." or s=="x":
-		return (lx+dx),(ly+dy),direction
-	elif mm[(ly+dy)][(lx+dx)]==" ":
-		print(f"edge! {pos}({lx},{ly})->{newpos} ({lx+dx},{ly+dy})")
-		mm[(ly)][(lx)]="@"
-		mm[(ly+dy)][(lx+dx)]="@"
-		printmap(mm)
-		raise IOError
-		#return nextCube(sx+dx,sy+dy,direction)
-	else:
-		return x,y,direction	
-		
-def move(steps):
+			pass
+                        #print(f"edge! {pos}({lx},{ly})->{newpos} ({lx+dx},{ly+dy})")
 
-	global x,y,direction
+	s=mm[ly][lx]
+	if s=="." or s=="x":
+		return (lx),(ly),direction
+	elif s==" ":
+		print(f"edge! {pos}({x},{y})->{newpos} ({lx},{ly})")
+		mm[ly][lx]="@"
+		mm[y][x]="@"
+		printmap(mm)
+		im.save(f"day22.png", "PNG")
+		raise IOError
+	else:
+		img.putpixel((lx,ly),(0,255,0))
+		return x,y,olddir	
+c=0		
+def move(steps):
+	global x,y,direction,c
+	c = (c+10)%255
+	im = images[-1].copy()
+	images.append(im)
 	for i in range(steps):
+		im.putpixel((x,y),(c,0,0))
 		prevx=x
 		prevy=y
-		x,y,direction=nextCube(0,0,direction)
+		x,y,direction=nextCube(im,direction)
 		mm[y][x]="x"
 		if x==prevx and y==prevy:
 			break
@@ -339,18 +372,28 @@ def turn(v,direction):
 		return (direction-1)%4
 	else:
 		raise IOError
-		
-for i in cmd:
-	if i.isdigit():
-		step=step*10+int(i)
-	else:
-		move(step)
-		direction = turn(i,direction)
-		#print(f"direction is now {direction}")
-		step=0
-move(step)
-
-printmap(mm)
-print((y+1)*1000+(x+1)*4+direction)
-
-
+images = [Image.new('P', (150, 200), (255,255,255,255))]
+d = ImageDraw.Draw(images[0])
+for x in range(3):
+        for y in range(4):
+                q = ((x+y)%2*50)
+                d.rectangle((x*50,y*50,(x*50+50),y*50+50), fill=(200+q,200+q,200+q), outline=None, width=1)
+x=start
+y=0
+direction=0
+try:
+        for i in cmd:
+                if i.isdigit():
+                        step=step*10+int(i)
+                else:
+                        move(step)
+                        direction = turn(i,direction)
+                        #print(f"direction is now {direction}")
+                        step=0
+        move(step)
+        printmap(mm)
+        print((y+1)*1000+(x+1)*4+direction)
+finally:
+        images[0].save('./day22.gif',save_all=True, append_images=images[1:], optimize=False, duration=100, loop=0)
+        print(len(images))
+                
