@@ -134,6 +134,8 @@ for step in range(9999):
             elif (nx == 1 and ny == 0) or (nx==w-2 and ny==h-1):
                 newpos.append((nx,ny))
     if found:
+        if len(target)==0:
+            break
         newpos = [t]
         t = target.pop()
         found=False
